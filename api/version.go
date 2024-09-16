@@ -1,6 +1,7 @@
 package api
 
 import (
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -47,8 +48,11 @@ func Versions(c *gin.Context, db *goquery.GoQuery) {
 
 	resp := &Pkg{}
 	err := db.Conn.QueryRow(query, search).Scan(&resp)
-	if err != nil {
-		fmt.Println(err)
+	if errors.Is(err, sql.ErrNoRows) {
+		message := fmt.Sprintf("No package found, given: %s", search)
+		c.JSON(404, gin.H{"message": message})
+		return
+	} else if err != nil {
 		c.JSON(500, gin.H{"message": "Internal error performing query."})
 		return
 	}
