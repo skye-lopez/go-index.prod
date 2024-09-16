@@ -14,7 +14,7 @@ func NewPG() (*gq.GoQuery, error) {
 	connString := ""
 	devEnv := os.Getenv("DEV_ENV")
 	if devEnv == "dev" {
-		connString := fmt.Sprint("host=localhost user=%s password=%s dbname=%s port=%s sslmode=disable",
+		connString = fmt.Sprintf("host=localhost user=%s password=%s dbname=%s port=%s sslmode=disable",
 			os.Getenv("PG_USER_DEV"),
 			os.Getenv("PG_PWD_DEV"),
 			os.Getenv("PG_DBNAME"),
