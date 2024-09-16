@@ -40,5 +40,9 @@ func Open() {
 		Search(c, db)
 	})
 
+	r.GET("/versions", func(c *gin.Context) {
+		Versions(c, db)
+	})
+
 	r.Run(fmt.Sprintf(":%s", port))
 }

@@ -35,6 +35,7 @@ func Search(c *gin.Context, db *goquery.GoQuery) {
 	packages, err := db.QueryString(query, searchValue, params.Limit, offset)
 	if err != nil {
 		c.JSON(500, gin.H{"message": "Internal error running query."})
+		return
 	}
 
 	res := []string{}
