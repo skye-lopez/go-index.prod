@@ -42,7 +42,7 @@ func FetchIdx() {
 	entries := make(chan *IdxEntry, len(urls)*2000)
 
 	for i, url := range urls {
-		fmt.Printf("\r Getting package entries from urls => [ %d / %d ]            ", i, len(urls))
+		fmt.Printf("\r Getting package entries from urls => [ %d / %d ]", i, len(urls))
 
 		sem <- 1
 		wg.Add(1)
@@ -81,8 +81,43 @@ func FetchIdx() {
 	close(entries)
 
 	for e := range entries {
-		fmt.Println(e)
+		fmt.Printf("\r Storing package entries to db =>  [ %d ] left", len(entries))
+		sem <- 1
+		wg.Add(1)
+
+		// TODO: Db err handling. Ideally we could turn this into a tx and store failed ones to some kind of log to be processed later.
+		go func() {
+			defer wg.Done()
+
+			// Upsert package into packages table
+			db.Conn.Exec("INSERT INTO packages (url) VALUES ($1) ON CONFLICT DO NOTHING", e.Path)
+
+			// Upsert package version for that package into package_versions
+			r, _ := db.QueryString("SELECT EXISTS(SELECT version FROM package_versions WHERE owner = $1 and version = $2)",
+				e.Path,
+				e.Version,
+			)
+			exists := r[0].([]interface{})[0].(bool)
+
+			if !exists {
+				db.Conn.Exec("INSERT INTO package_versions (owner, version, time) VALUES ($1, $2, $3)",
+					e.Path,
+					e.Version,
+					e.Timestamp,
+				)
+			}
+			<-sem
+		}()
 	}
+
+	wg.Wait()
+	close(sem)
+
+	newLastFetchTime := time.Now().Format(time.RFC3339Nano)
+	db.Conn.Exec("UPDATE internal_log SET value = $1 WHERE id = $2",
+		newLastFetchTime,
+		"last_fetch_time",
+	)
 }
 
 // gets the last time we fetched the index from the db. in RFC3339Nano format.

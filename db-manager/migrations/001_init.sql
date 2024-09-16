@@ -5,6 +5,7 @@ create table packages (
 create table package_versions (
     uuid uuid primary key default gen_random_uuid(),
     owner text not null references packages(url) on delete cascade,
+    version text not null,
     time text not null
 );
 
