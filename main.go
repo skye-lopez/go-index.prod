@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/joho/godotenv"
+	"github.com/skye-lopez/go-index.prod/idx"
 )
 
 func main() {
@@ -11,4 +12,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("Issue loading .env file --\n%s", err)
 	}
+
+	idx.FetchIdx()
 }

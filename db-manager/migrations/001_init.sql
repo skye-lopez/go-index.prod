@@ -12,3 +12,5 @@ create table internal_log (
     id text primary key check (id in ('last_fetch_time')),
     value text not null
 );
+
+insert into internal_log (id, value) values ('last_fetch_time', '2019-04-10T19:08:52.997264Z');
